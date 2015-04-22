@@ -35,7 +35,7 @@
 
 Option Explicit
 
-
+''	---------------------------------------------------------------------------
 
 Dim		gobjExcel
 Dim		gobjSheet
@@ -43,7 +43,7 @@ Dim		gintWorksheetCount
 Dim		gobjFso
 Dim		gstrPathExcel
 
-
+''	---------------------------------------------------------------------------
 
 Function GetScriptName()
 	''
@@ -238,7 +238,7 @@ Function SelectWorkSheet(ByRef objExcel, ByVal strWorksheetName)
 	SelectWorkSheet = r
 End Function '' of Sub SelectWorkSheet
 
-
+''	---------------------------------------------------------------------------
 
 Sub ModifyGroup(ByVal strGroupDn, ByVal strAction, ByVal strAccountDn)
 	Dim		c			'' Command Line 
@@ -317,6 +317,11 @@ Sub ScriptInit()
 	If InStr(gstrPathExcel, ":\") = 0 Then
 		gstrPathExcel = GetScriptPath & gstrPathExcel
 	End If
+	
+	If gobjFso.FileExists(gstrPathExcel) = False Then
+		WScript.Echo "ERROR Could not find the file " & gstrPathExcel
+		WScript.Quit(0)
+	End If
 End Sub '' of Sub ScriptInit
 
 
@@ -393,12 +398,11 @@ Sub ScriptDone()
 	Set gobjFso = Nothing
 End Sub '' of Sub ScriptDone
 
-
+''	---------------------------------------------------------------------------
 
 Call ScriptInit()
 Call ScriptRun()
 Call ScriptDone()
 WScript.Quit(0)
 
-
-
+''	---------------------------------------------------------------------------
