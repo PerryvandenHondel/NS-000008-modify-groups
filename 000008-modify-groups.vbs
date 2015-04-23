@@ -439,17 +439,14 @@ Sub ScriptTest()
 	WScript.Echo EncloseWithDQ(Chr(34) & "test")
 	WScript.Echo EncloseWithDQ("test" & Chr(34))
 	WScript.Echo EncloseWithDQ(Chr(34) & "test" & Chr(34))
-	
-	
 End Sub '' of Sub ScriptTest
 
 ''	---------------------------------------------------------------------------
 
-
-''Call ScriptInit()
-''Call ScriptRun()
-'' Call ScriptDone()
-Call ScriptTest()
+Call ScriptInit()
+Call ScriptRun()
+'Call ScriptTest()
+Call ScriptDone()
 WScript.Quit(0)
 
 ''	---------------------------------------------------------------------------
