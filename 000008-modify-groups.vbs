@@ -63,6 +63,28 @@ Function GetScriptName()
 End Function '' GetScriptName()
 
 
+
+Function EncloseWithDQ(ByVal s)
+	''
+	''	Returns an enclosed string s with double quotes around it.
+	''	Check for exising quotes before adding adding.
+	''
+	''	s > "s"
+	''
+	
+	If Left(s, 1) <> Chr(34) Then
+		s = Chr(34) & s
+	End If
+	
+	If Right(s, 1) <> Chr(34) Then
+		s = s & Chr(34)
+	End If
+
+	EncloseWithDQ = s
+End Function '' of Function EncloseWithDQ
+
+
+
 Function GetScriptPath()
 	'==
 	'==	Returns the path where the script is located.
@@ -93,32 +115,40 @@ Function DsQueryGetDn(ByVal strRootDse, ByVal strCn)
 	''		Returns: 	The DN of blank if not found.
 	''
 	
-	Dim		c		''	Command
-	Dim		r		''	Result
+	Dim		c			''	Command
+	Dim		r			''	Result
 	Dim		objShell
 	Dim		objExec
 	Dim		strOutput
 	
-	c = "dsquery.exe "
-	c = c & "* "
-	c = c & strRootDse & " "
-	c = c & "-filter (CN=" & strCn & ")"
-
-	Set objShell = CreateObject("WScript.Shell")
-	Set objExec = objShell.Exec(c)
-		
-	Do
-		strOutput = objExec.Stdout.ReadLine()
-	Loop While Not objExec.Stdout.atEndOfStream
-
-	Set objExec = Nothing
-	Set objShell = Nothing
-	If Len(strOutput) > 0 Then
-		DsQueryGetDn = strOutput  '' BEWARE: r contains now " around the string, see "CN=name,OU=name,DC=domain,DC=nl"
+	If InStr(strCn, "CN=") > 0 Then
+		'' When the strCN already contains a Distinguished Name (DN), result = strCn
+		r = EncloseWithDQ(strCn)
 	Else
-		WScript.Echo "ERROR Could not find the Distinguished Name for " & strCn & " in " & strRootDse
-		DsQueryGetDn = ""
+		'' No, we must search for the DN based on the CN
+	
+		c = "dsquery.exe "
+		c = c & "* "
+		c = c & strRootDse & " "
+		c = c & "-filter (CN=" & strCn & ")"
+
+		Set objShell = CreateObject("WScript.Shell")
+		Set objExec = objShell.Exec(c)
+		
+		Do
+			strOutput = objExec.Stdout.ReadLine()
+		Loop While Not objExec.Stdout.atEndOfStream
+
+		Set objExec = Nothing
+		Set objShell = Nothing
+		If Len(strOutput) > 0 Then
+			r = EncloseWithDQ(strOutput)  '' BEWARE: r contains now " around the string, see "CN=name,OU=name,DC=domain,DC=nl"
+		Else
+			WScript.Echo "ERROR Could not find the Distinguished Name for " & strCn & " in " & strRootDse
+			r = ""
+		End If
 	End If
+	DsQueryGetDn = r
 End Function '' DsQueryGetDn
 
 
@@ -394,15 +424,32 @@ Sub ScriptRun
 End Sub '' of Sub ScriptRun
 
 
+
 Sub ScriptDone()
 	Set gobjFso = Nothing
 End Sub '' of Sub ScriptDone
 
+
+
+Sub ScriptTest()
+	WScript.Echo DsQueryGetDn("DC=prod,DC=ns,DC=nl", "RSA_E0600_ENTERPRISE_DGG")
+	WScript.Echo DsQueryGetDn("DC=prod,DC=ns,DC=nl", "CN=RSA_E0600_ENTERPRISE_DGG,OU=Domain Global Groups,OU=Resources,DC=prod,DC=ns,DC=nl")
+	
+	WScript.Echo EncloseWithDQ("test")
+	WScript.Echo EncloseWithDQ(Chr(34) & "test")
+	WScript.Echo EncloseWithDQ("test" & Chr(34))
+	WScript.Echo EncloseWithDQ(Chr(34) & "test" & Chr(34))
+	
+	
+End Sub '' of Sub ScriptTest
+
 ''	---------------------------------------------------------------------------
 
-Call ScriptInit()
-Call ScriptRun()
-Call ScriptDone()
+
+''Call ScriptInit()
+''Call ScriptRun()
+'' Call ScriptDone()
+Call ScriptTest()
 WScript.Quit(0)
 
 ''	---------------------------------------------------------------------------
